@@ -72,6 +72,8 @@ async function seed() {
 
   // Drop and recreate tables for a clean seed
   sqlite.exec(`
+    DROP TABLE IF EXISTS bookmarks;
+    DROP TABLE IF EXISTS notes;
     DROP TABLE IF EXISTS comments;
     DROP TABLE IF EXISTS course_ratings;
     DROP TABLE IF EXISTS video_watch_events;
@@ -2067,6 +2069,40 @@ This course is still in draft while the cluster examples are rewritten against t
   markInProgress(students[4].id, course1LessonIds[1]);
 
   console.log(`Created ${countRows(schema.lessonProgress)} lesson progress records.`);
+
+  // ─── Bookmarks and Notes ───
+  // Private to the Student: only Emma sees these, on her Lesson pages and /saved.
+
+  db.insert(schema.bookmarks)
+    .values([
+      { userId: students[0].id, lessonId: course1LessonIds[4], createdAt: daysAgo(30) },
+      { userId: students[0].id, lessonId: course2LessonIds[6], createdAt: daysAgo(6) },
+      { userId: students[2].id, lessonId: course1LessonIds[2], createdAt: daysAgo(20) },
+    ])
+    .run();
+
+  db.insert(schema.notes)
+    .values([
+      {
+        userId: students[0].id,
+        lessonId: course1LessonIds[4],
+        body: "Rewatch from 4:30 — the part about closures capturing the loop variable.\nTry the exercise again without looking.",
+        createdAt: daysAgo(30),
+        updatedAt: daysAgo(9),
+      },
+      {
+        userId: students[0].id,
+        lessonId: course2LessonIds[8],
+        body: "* not a list, just my own asterisks\n# and not a heading either",
+        createdAt: daysAgo(4),
+        updatedAt: daysAgo(4),
+      },
+    ])
+    .run();
+
+  console.log(
+    `Created ${countRows(schema.bookmarks)} bookmarks and ${countRows(schema.notes)} notes.`
+  );
 
   // ─── Quiz Attempts ───
 
